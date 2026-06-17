@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils";
 type TabId = "join-guide" | "faq";
 
 const tabs: { id: TabId; label: string }[] = [
-  { id: "join-guide", label: "가입안내" },
   { id: "faq", label: "FAQ" },
+  { id: "join-guide", label: "가입안내" },
 ];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabId>("join-guide");
+  const [activeTab, setActiveTab] = useState<TabId>("faq");
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -42,7 +42,7 @@ export default function Home() {
                 "flex-1 px-4 py-3.5 text-sm font-semibold transition-colors",
                 activeTab === tab.id
                   ? "border-b-2 border-emerald-500 text-emerald-600"
-                  : "border-b-2 border-transparent text-gray-400 hover:text-gray-600"
+                  : "border-b-2 border-transparent text-gray-400 hover:text-gray-600",
               )}
             >
               {tab.label}

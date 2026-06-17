@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { faqCategories, faqEntries, type FaqEntry } from "@/lib/faq-entries";
+import { faqWidgetRegistry } from "@/lib/faq-widget-registry";
 import { cn } from "@/lib/utils";
 
 export default function Faq() {
@@ -124,6 +125,12 @@ function FaqRow({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  // entry.widget이 지정돼 있으면 레지스트리에서 컴포넌트를 찾아온다.
+  // 없으면 그냥 undefined라서 아래에서 기존처럼 텍스트만 보여줌.
+  const WidgetComponent = entry.widget
+    ? faqWidgetRegistry[entry.widget]
+    : undefined;
+
   return (
     <li>
       <button
@@ -147,9 +154,13 @@ function FaqRow({
         </svg>
       </button>
       {isOpen && (
-        <p className="whitespace-pre-line px-5 pb-4 text-sm leading-relaxed text-gray-500">
-          {entry.answer}
-        </p>
+        <div className="px-5 pb-4">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-500">
+            {entry.answer}
+          </p>
+          {/* 위젯이 있는 질문이면 답변 텍스트 아래에 인터랙티브 컴포넌트를 추가로 보여준다 */}
+          {WidgetComponent && <WidgetComponent />}
+        </div>
       )}
     </li>
   );

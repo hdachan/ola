@@ -32,32 +32,22 @@ export const qrTree: GuideNode = {
       children: [
         {
           id: "neutering-same-day",
-          label: "중성화한날도 되나요? O",
+          label:
+            "중성화한날도 되나요? O\n중성화 하러가기전 되나요? X\n중성화 하면되나요? O",
           answer: "테스트",
         },
         {
-          id: "neutering-before",
-          label: "중성화 하러가기전 되나요? X",
-          answer: "테스트",
+          id: "neutering-cost",
+          label: "중성화 비용도 보장되나요?",
+          children: [
+            { id: "neutering-cost-yes", label: "보장됩니다", answer: "테스트" },
+            {
+              id: "neutering-cost-no",
+              label: "보장 안됩니다",
+              answer: "테스트",
+            },
+          ],
         },
-        {
-          id: "neutering-do",
-          label: "중성화 하면되나요? O",
-          answer: "테스트",
-        },
-        {
-          id: "neutering-other-insurance",
-          label: "다른보험",
-          answer: "테스트",
-        },
-        {
-  id: "neutering-cost",
-  label: "중성화 비용도 보장되나요?",
-  children: [
-    { id: "neutering-cost-yes", label: "보장됩니다", answer: "테스트" },
-    { id: "neutering-cost-no", label: "보장 안됩니다", answer: "테스트" },
-  ],
-},
       ],
     },
   ],
@@ -69,7 +59,7 @@ export const guideTrees: GuideNode[] = [claimTree, qrTree];
 // 어느 트리에 속하는지 모를 때도 바로 찾을 수 있도록 guideTrees 전체를 훑는다.
 export function findPathToNode(
   roots: GuideNode[],
-  targetId: string
+  targetId: string,
 ): GuideNode[] | null {
   function walk(node: GuideNode, path: GuideNode[]): GuideNode[] | null {
     const nextPath = [...path, node];
