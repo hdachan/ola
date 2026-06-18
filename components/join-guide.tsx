@@ -1,364 +1,323 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   guideTrees,
-  findPathToNode,
+  searchGuideTree,
   type GuideNode,
+  type FaqWidgetId,
+  type SearchHit,
 } from "@/lib/guide-tree-data";
-import { cn } from "@/lib/utils";
+// FAQ 게시판(Faq 컴포넌트)에서 쓰던 위젯 레지스트리를 그대로 재사용한다.
+// 새 위젯을 추가하는 절차는 lib/faq-widget-registry.ts 쪽 절차를 따르면 됨
+// (이 파일은 따로 수정할 필요 없음).
+import { faqWidgetRegistry } from "@/lib/faq-widget-registry";
 
-const MAX_RECENT = 8;
-
-// 검색 결과 한 줄에 필요한 정보: 매칭된 노드 + 거기까지 오는 경로(상위 라벨들)
-interface SearchHit {
-  node: GuideNode;
-  path: string[]; // 루트 제외, 매칭 노드 자신 포함하지 않음
-}
+const SHORTCUT_PREVIEW_COUNT = 3; // 키워드 보기에서 처음에 보여줄 개수, 나머지는 "더보기"
 
 function isLeaf(node: GuideNode) {
   return !node.children || node.children.length === 0;
 }
 
-// 트리 전체를 순회하면서 label 또는 answer에 검색어가 포함된 노드를 모두 수집
-function searchTree(roots: GuideNode[], query: string): SearchHit[] {
-  const lower = query.toLowerCase();
-  const hits: SearchHit[] = [];
+// widget id -> 레지스트리에서 실제 컴포넌트를 찾아 렌더링.
+// 등록되지 않은 id가 들어오면(타입상 불가능하지만 방어적으로) 아무것도 안 그림.
+function renderWidget(widget: FaqWidgetId) {
+  const WidgetComponent = faqWidgetRegistry[widget];
+  if (!WidgetComponent) return null;
+  return <WidgetComponent />;
+}
 
-  function walk(node: GuideNode, path: string[]) {
-    const matches =
-      node.label.toLowerCase().includes(lower) ||
-      (node.answer ?? "").toLowerCase().includes(lower);
-    if (matches) {
-      hits.push({ node, path });
-    }
-    node.children?.forEach((child) => walk(child, [...path, node.label]));
-  }
-
-  roots.forEach((root) => walk(root, []));
-  return hits;
+// 채팅에 쌓이는 모든 사건을 "시간순 단일 타임라인"으로 관리한다.
+// 메뉴를 눌렀든, 키워드 보기를 눌렀든 똑같이 이 배열에 순서대로 추가되기 때문에
+// 항상 가장 마지막에 누른 게 화면 맨 아래에 오는 게 보장된다.
+// (이전 버전은 menu 진행 상황과 shortcut 답변을 따로 들고 있다가 합치는 방식이라
+//  실제 클릭 순서와 화면 표시 순서가 어긋나는 문제가 있었음 -> 이 구조로 교체)
+interface SelectEvent {
+  node: GuideNode;
 }
 
 export default function JoinGuide() {
+  // 사용자가 지금까지 고른 노드들을 클릭한 순서 그대로 쌓은 단일 타임라인
+  const [events, setEvents] = useState<SelectEvent[]>([]);
+  // 입력창 텍스트. 전송/엔터 없이 타이핑하는 즉시 바로 위 보기 목록이 갱신됨.
   const [query, setQuery] = useState("");
-  // 선택 경로: 지금까지 골라온 노드들. 화면엔 이걸 그대로 "선택 단계 카드"로 쌓아서 보여준다.
-  const [path, setPath] = useState<GuideNode[]>([]);
-  const [openAnswerId, setOpenAnswerId] = useState<string | null>(null);
-  // 클릭했던 노드들의 id를 최신순으로 보관 (중간 단계 항목도 포함)
-  const [recentIds, setRecentIds] = useState<string[]>([]);
+  // "더보기"를 눌러서 전체 펼친 보기 목록인지 여부 (입력값이 바뀌면 다시 접힘)
+  const [expanded, setExpanded] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const trimmedQuery = query.trim();
-  const isSearching = trimmedQuery.length > 0;
+  const hasQuery = trimmedQuery.length > 0;
 
-  const searchResults = useMemo(
-    () => (isSearching ? searchTree(guideTrees, trimmedQuery) : []),
-    [isSearching, trimmedQuery]
+  const shortcutHits = useMemo(
+    () => (hasQuery ? searchGuideTree(guideTrees, trimmedQuery) : []),
+    [hasQuery, trimmedQuery]
   );
+  const visibleHits = expanded
+    ? shortcutHits
+    : shortcutHits.slice(0, SHORTCUT_PREVIEW_COUNT);
+  const hiddenCount = shortcutHits.length - visibleHits.length;
 
-  const recentNodes = useMemo(() => {
-    return recentIds
-      .map((id) => {
-        const found = findPathToNode(guideTrees, id);
-        if (!found) return null;
-        return { node: found[found.length - 1], path: found };
-      })
-      .filter((v): v is { node: GuideNode; path: GuideNode[] } => v !== null);
-  }, [recentIds]);
+  // "지금 메뉴 트리의 어느 위치에 있는지"는 별도 state가 아니라
+  // events 마지막 항목을 기준으로 매번 계산한다. (단일 진실 소스 = events)
+  // 마지막으로 고른 노드가 leaf(답변)면 -> 메뉴 진행은 끝난 상태.
+  // leaf가 아니면 -> 그 노드의 children이 다음에 보여줄 옵션.
+  const lastEvent = events[events.length - 1] ?? null;
+  const awaitingMenuChoice = !lastEvent || !isLeaf(lastEvent.node);
+  const currentOptions = !lastEvent
+    ? guideTrees
+    : !isLeaf(lastEvent.node)
+    ? lastEvent.node.children ?? []
+    : [];
 
-  // 같은 탐색 흐름 안에서 더 깊이 들어간 경우, 이전에 남겨둔 중간 단계 기록은
-  // 지우고 최종 도착 지점만 남긴다. (예: 청구 -> 팩스로 들어가면 "청구"는 빼고 "팩스"만 남음)
-  // currentPath는 이번에 기록하는 노드까지 오는 전체 경로(자기 자신 포함)다.
-  function recordRecent(nodeId: string, currentPath: GuideNode[]) {
-    const pathIds = new Set(currentPath.map((n) => n.id));
-    setRecentIds((prev) => {
-      // 지금 경로에 포함된 예전 기록(= 같은 흐름의 중간 단계)은 모두 제거
-      const withoutAncestors = prev.filter((id) => !pathIds.has(id));
-      return [nodeId, ...withoutAncestors].slice(0, MAX_RECENT);
-    });
-  }
-
-  // 한 단계의 옵션 목록에서 항목을 선택했을 때.
-  // depth는 그 옵션 목록이 path 중 몇 번째 단계 다음에 나온 것인지(루트 목록이면 0).
-  function selectAt(depth: number, node: GuideNode) {
-    const newPath = [...path.slice(0, depth), node];
-    recordRecent(node.id, newPath);
-    setPath(newPath);
-    setOpenAnswerId(isLeaf(node) ? node.id : null);
-  }
-
-  // 이미 선택해서 카드로 쌓인 단계를 다시 누르면, 그 시점으로 되돌아가서
-  // "선택을 바꾸는" 화면으로 전환 (그 단계의 옵션 목록을 다시 보여줌)
-  function reopenStage(depth: number) {
-    setPath((prev) => prev.slice(0, depth));
-    setOpenAnswerId(null);
-  }
-
-  function resetAll() {
-    setPath([]);
-    setOpenAnswerId(null);
-  }
-
-  // 최근 본 항목 / 검색 결과에서 노드를 눌렀을 때, 그 노드가 있는 경로 전체를
-  // 선택 카드로 그대로 쌓아서 보여줌 (= 그 흐름을 다시 따라온 것처럼)
-  function jumpToNode(fullPath: GuideNode[]) {
+  function selectNode(node: GuideNode) {
+    setEvents((prev) => [...prev, { node }]);
+    // 메뉴 버튼이든 키워드 보기든, 새로 고른 순간 검색창은 항상 비워서
+    // "방금 고른 것"이 명확히 맨 아래에 보이게 한다.
     setQuery("");
-    const target = fullPath[fullPath.length - 1];
-    recordRecent(target.id, fullPath);
-    setPath(fullPath);
-    setOpenAnswerId(isLeaf(target) ? target.id : null);
+    setExpanded(false);
   }
 
-  // path를 바탕으로, 화면에 그릴 "단계" 목록을 만든다.
-  // 각 단계 = { depth, options(이 단계에서 고를 수 있던 목록), selected(고른 것, 있으면) }
-  const stages = useMemo(() => {
-    type Stage = {
-      depth: number;
-      options: GuideNode[];
-      selected: GuideNode | null;
-    };
-    const result: Stage[] = [];
-    let options = guideTrees;
-    for (let depth = 0; depth <= path.length; depth++) {
-      const selected = path[depth] ?? null;
-      result.push({ depth, options, selected });
-      if (!selected) break;
-      if (isLeaf(selected)) break; // 답변 노드면 더 이상 다음 단계 없음
-      options = selected.children ?? [];
-    }
-    return result;
-  }, [path]);
+  function restart() {
+    setEvents([]);
+    setQuery("");
+    setExpanded(false);
+  }
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [events.length, visibleHits.length]);
+
+  const showRestart = events.length > 0;
 
   return (
-    <div>
-      <h1 className="mb-1 text-xl font-bold text-gray-900">가입 안내</h1>
-      <p className="mb-5 text-sm text-gray-500">
-        궁금한 내용을 검색하거나, 하나씩 눌러서 찾아보세요
-      </p>
-
-      {/* 검색창 */}
-      <div className="relative mb-4">
-        <svg
-          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="예: 카드, 나이, 가입불가"
-          className="w-full rounded-2xl border border-gray-200 bg-white py-3.5 pl-12 pr-10 text-base text-gray-900 shadow-sm outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500"
-        />
-        {query.length > 0 && (
+    <div className="flex h-[640px] max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-gray-50">
+      {/* 상단 헤더 */}
+      <div className="flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4">
+        <div>
+          <h1 className="text-base font-bold text-gray-900">가입 안내 챗봇</h1>
+          <p className="text-xs text-gray-400">
+            메뉴를 누르거나, 키워드를 입력해서 바로 답을 찾아보세요
+          </p>
+        </div>
+        {showRestart && (
           <button
-            onClick={() => setQuery("")}
-            aria-label="검색어 지우기"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            onClick={restart}
+            className="shrink-0 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 active:bg-gray-200"
           >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            처음부터
           </button>
         )}
       </div>
 
-      {/* 최근 본 항목: 검색 중에는 숨겨서 화면을 덜 복잡하게 유지 */}
-      {!isSearching && recentNodes.length > 0 && (
-        <div className="mb-5">
-          <p className="mb-2 text-xs font-medium text-gray-400">
-            최근 본 항목
-          </p>
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {recentNodes.map(({ node, path: fullPath }) => (
-              <button
-                key={node.id}
-                onClick={() => jumpToNode(fullPath)}
-                className="shrink-0 rounded-full border border-gray-200 bg-white px-3.5 py-2 text-sm text-gray-700 shadow-sm active:bg-gray-50"
-              >
-                {fullPath.map((n) => n.label).join(" > ")}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 대화 영역: events를 시간순 그대로 렌더링 */}
+      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+        {/* 첫 인사: 아직 아무것도 고르기 전에만 표시 */}
+        {events.length === 0 && (
+          <BotBubble>안녕하세요! 무엇을 도와드릴까요?</BotBubble>
+        )}
 
-      {isSearching ? (
-        // 검색 모드: 트리 깊이 무관하게 라벨+답변 매칭된 노드를 경로와 함께 표시.
-        // 클릭하면 검색 결과 자리에서 펼치는 게 아니라, "내가 고른 흐름" 카드 쌓기
-        // 화면으로 그대로 이동해서 일반 탐색과 똑같은 경험을 준다.
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-          {searchResults.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-gray-400">
-              &ldquo;{trimmedQuery}&rdquo;에 대한 검색 결과가 없어요
-            </p>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {searchResults.map(({ node, path: hitPath }) => (
-                <li key={node.id}>
-                  <button
-                    onClick={() => {
-                      const fullPath = findPathToNode(guideTrees, node.id);
-                      if (fullPath) jumpToNode(fullPath);
-                    }}
-                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left active:bg-gray-50"
-                  >
-                    <span className="min-w-0">
-                      {hitPath.length > 0 && (
-                        <span className="mb-0.5 block truncate text-xs font-medium text-emerald-600">
-                          {hitPath.join(" / ")}
-                        </span>
-                      )}
-                      <span className="block text-[15px] font-medium text-gray-900">
-                        {node.label}
-                      </span>
-                    </span>
-                    <ChevronRightIcon />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {/* 지금까지 고른 흐름이 있으면 맨 위에 한 줄로 요약 + 처음부터 다시 버튼 */}
-          {path.length > 0 && (
-            <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3">
-              <p className="text-sm text-emerald-700">
-                <span className="font-semibold">내가 고른 흐름</span>{" "}
-                <span className="text-emerald-600">
-                  {path.map((n) => n.label).join(" → ")}
-                </span>
-              </p>
+        {events.map((event, i) => {
+          const leaf = isLeaf(event.node);
+          return (
+            <div key={`${event.node.id}-${i}`} className="space-y-2">
+              <UserBubble>{event.node.label}</UserBubble>
+              {leaf ? (
+                <>
+                  <BotBubble>{event.node.answer}</BotBubble>
+                  {event.node.widget && (
+                    <div className="pl-9">{renderWidget(event.node.widget)}</div>
+                  )}
+                </>
+              ) : (
+                <BotBubble>아래에서 골라주세요.</BotBubble>
+              )}
+            </div>
+          );
+        })}
+
+        {/* 아직 메뉴 선택이 끝나지 않았으면(=마지막이 leaf가 아니면) 지금 단계의 옵션을 맨 아래에 표시 */}
+        {awaitingMenuChoice && (
+          <OptionList options={currentOptions} onSelect={selectNode} />
+        )}
+
+        {/* 가장 마지막에 답변(leaf)까지 도달했으면 마무리 멘트 */}
+        {!awaitingMenuChoice && lastEvent && (
+          <div className="space-y-2">
+            <BotBubble>더 궁금한 점이 있으신가요?</BotBubble>
+            <div className="flex justify-start">
               <button
-                onClick={resetAll}
-                className="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+                onClick={restart}
+                className="rounded-2xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-600 shadow-sm active:bg-emerald-50"
               >
-                처음부터
+                처음으로 돌아가기
               </button>
             </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* 키워드 보기: 입력창 바로 위에, 타이핑하는 즉시 매칭되는 질문이 번호 붙은 리스트로 뜸.
+          여기서 항목을 고르면 selectNode가 호출되어 위 events 타임라인 맨 끝에 그대로 추가되므로,
+          메뉴 진행 중이었더라도 항상 화면 가장 아래에 정확히 나타난다. */}
+      {hasQuery && (
+        <div className="border-t border-gray-100 bg-white px-4 pt-3">
+          {shortcutHits.length === 0 ? (
+            <p className="px-1 pb-3 text-xs text-gray-400">
+              &ldquo;{trimmedQuery}&rdquo;와 일치하는 질문이 없어요
+            </p>
+          ) : (
+            <div className="pb-3">
+              <p className="px-1 pb-1.5 text-xs font-medium text-gray-400">
+                이런 질문을 찾으시나요?
+              </p>
+              <ul className="overflow-hidden rounded-2xl border border-gray-100">
+                {visibleHits.map((hit, idx) => (
+                  <li key={hit.node.id}>
+                    <button
+                      onClick={() => selectNode(hit.node)}
+                      className="flex w-full items-center gap-3 border-b border-gray-100 bg-white px-3.5 py-3 text-left last:border-b-0 active:bg-gray-50"
+                    >
+                      <span
+                        className={
+                          idx < 3
+                            ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white"
+                            : "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[11px] font-bold text-gray-500"
+                        }
+                      >
+                        {idx + 1}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-800">
+                        {hit.node.label}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {hiddenCount > 0 && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="mt-1.5 w-full rounded-xl py-2 text-xs font-medium text-gray-400 active:bg-gray-100"
+                >
+                  {hiddenCount}개 더보기
+                </button>
+              )}
+              {expanded && shortcutHits.length > SHORTCUT_PREVIEW_COUNT && (
+                <button
+                  onClick={() => setExpanded(false)}
+                  className="mt-1.5 w-full rounded-xl py-2 text-xs font-medium text-gray-400 active:bg-gray-100"
+                >
+                  접기
+                </button>
+              )}
+            </div>
           )}
-
-          {/* 단계별 카드: 선택을 마친 단계는 "고른 항목"만 보이고,
-              아직 선택 전인 마지막 단계는 옵션 목록을 그대로 보여준다. */}
-          {stages.map((stage) => {
-            const isLastStage = stage.depth === stages.length - 1;
-            const showOptions = !stage.selected; // 아직 선택 안 한 단계 = 옵션 펼친 상태
-
-            return (
-              <div
-                key={stage.depth}
-                className="overflow-hidden rounded-2xl bg-white shadow-sm"
-              >
-                {stage.selected && (
-                  <button
-                    onClick={() => reopenStage(stage.depth)}
-                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white">
-                        {stage.depth + 1}
-                      </span>
-                      <span className="text-[15px] font-medium text-gray-900">
-                        {stage.selected.label}
-                      </span>
-                    </span>
-                    <span className="text-xs font-medium text-gray-400">
-                      변경
-                    </span>
-                  </button>
-                )}
-
-                {/* 답변(leaf)이면 바로 아래 펼쳐서 보여줌 */}
-                {stage.selected &&
-                  isLeaf(stage.selected) &&
-                  openAnswerId === stage.selected.id && (
-                    <p className="whitespace-pre-line px-5 pb-4 text-sm leading-relaxed text-gray-500">
-                      {stage.selected.answer}
-                    </p>
-                  )}
-
-                {showOptions && (
-                  <>
-                    {!isLastStage && (
-                      <p className="px-5 pt-4 text-xs font-medium text-gray-400">
-                        다시 선택해주세요
-                      </p>
-                    )}
-                    {stage.options.length > 0 ? (
-                      <ul className="divide-y divide-gray-100">
-                        {stage.options.map((node) => (
-                          <li key={node.id}>
-                            <button
-                              onClick={() => selectAt(stage.depth, node)}
-                              className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left active:bg-gray-50"
-                            >
-                              <span className="text-[15px] font-medium text-gray-900">
-                                {node.label}
-                              </span>
-                              {isLeaf(node) ? (
-                                <ChevronDownIcon open={false} />
-                              ) : (
-                                <ChevronRightIcon />
-                              )}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="px-5 py-10 text-center text-sm text-gray-400">
-                        아직 등록된 내용이 없어요
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            );
-          })}
         </div>
       )}
+
+      {/* 입력창: 전송 버튼/엔터 동작 없음. 타이핑 자체가 위쪽 보기 목록을 즉시 갱신하는 트리거. */}
+      <div className="border-t border-gray-100 bg-white px-4 py-3">
+        <div className="relative">
+          <svg
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setExpanded(false);
+            }}
+            placeholder="궁금한 내용을 입력해보세요 (예: 나이, 청구, 갱신)"
+            className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-9 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-500 focus:bg-white"
+          />
+          {query.length > 0 && (
+            <button
+              onClick={() => {
+                setQuery("");
+                setExpanded(false);
+              }}
+              aria-label="입력 지우기"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function ChevronDownIcon({ open }: { open: boolean }) {
+function BotBubble({ children }: { children?: string }) {
+  if (!children) return null;
   return (
-    <svg
-      className={cn(
-        "h-4 w-4 flex-shrink-0 text-gray-400 transition-transform",
-        open && "rotate-180"
-      )}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
+    <div className="flex items-start gap-2">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+        봇
+      </div>
+      <div className="max-w-[78%] whitespace-pre-line rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-[15px] leading-relaxed text-gray-800 shadow-sm">
+        {children}
+      </div>
+    </div>
   );
 }
 
-function ChevronRightIcon() {
+function UserBubble({ children }: { children: string }) {
   return (
-    <svg
-      className="h-4 w-4 flex-shrink-0 text-gray-300"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <polyline points="9 6 15 12 9 18" />
-    </svg>
+    <div className="flex justify-end">
+      <div className="max-w-[78%] rounded-2xl rounded-tr-sm bg-emerald-500 px-4 py-3 text-[15px] leading-relaxed text-white shadow-sm">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// 사용자가 직접 입력하는 대신 누르는 "선택지 버튼" 묶음.
+function OptionList({
+  options,
+  onSelect,
+}: {
+  options: GuideNode[];
+  onSelect: (node: GuideNode) => void;
+}) {
+  if (options.length === 0) {
+    return (
+      <div className="flex justify-start pl-9">
+        <p className="rounded-2xl bg-white px-4 py-3 text-sm text-gray-400 shadow-sm">
+          아직 등록된 내용이 없어요
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap justify-end gap-2 pl-9">
+      {options.map((node) => (
+        <button
+          key={node.id}
+          onClick={() => onSelect(node)}
+          className="rounded-2xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-600 shadow-sm transition-colors active:bg-emerald-50"
+        >
+          {node.label}
+        </button>
+      ))}
+    </div>
   );
 }
