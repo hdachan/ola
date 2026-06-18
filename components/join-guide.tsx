@@ -12,6 +12,7 @@ import {
 // 새 위젯을 추가하는 절차는 lib/faq-widget-registry.ts 쪽 절차를 따르면 됨
 // (이 파일은 따로 수정할 필요 없음).
 import { faqWidgetRegistry } from "@/lib/faq-widget-registry";
+import { cn } from "@/lib/utils";
 
 const SHORTCUT_PREVIEW_COUNT = 3; // 키워드 보기에서 처음에 보여줄 개수, 나머지는 "더보기"
 
@@ -90,6 +91,13 @@ export default function JoinGuide() {
     setExpanded(false);
   }
 
+  // 마지막으로 고른 노드 하나만 취소하고 그 이전 단계로 돌아간다.
+  function goBack() {
+    setEvents((prev) => prev.slice(0, -1));
+    setQuery("");
+    setExpanded(false);
+  }
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [events.length, visibleHits.length]);
@@ -98,6 +106,18 @@ export default function JoinGuide() {
 
   return (
     <div className="flex h-[640px] max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-gray-50">
+      {/* 메시지가 나타날 때 아주 살짝 아래에서 위로 올라오며 페이드인되는 간단한 애니메이션.
+          별도 라이브러리 없이 순수 CSS로만 처리한다. */}
+      <style>{`
+        @keyframes guideFadeInUp {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .guide-animate-in {
+          animation: guideFadeInUp 0.25s ease-out both;
+        }
+      `}</style>
+
       {/* 상단 헤더 */}
       <div className="flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4">
         <div>
@@ -107,12 +127,20 @@ export default function JoinGuide() {
           </p>
         </div>
         {showRestart && (
-          <button
-            onClick={restart}
-            className="shrink-0 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 active:bg-gray-200"
-          >
-            처음부터
-          </button>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={goBack}
+              className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 active:bg-gray-200"
+            >
+              이전으로
+            </button>
+            <button
+              onClick={restart}
+              className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 active:bg-gray-200"
+            >
+              처음부터
+            </button>
+          </div>
         )}
       </div>
 
@@ -126,7 +154,10 @@ export default function JoinGuide() {
         {events.map((event, i) => {
           const leaf = isLeaf(event.node);
           return (
-            <div key={`${event.node.id}-${i}`} className="space-y-2">
+            <div
+              key={`${event.node.id}-${i}`}
+              className="guide-animate-in space-y-2"
+            >
               <UserBubble>{event.node.label}</UserBubble>
               {leaf ? (
                 <>
@@ -144,14 +175,22 @@ export default function JoinGuide() {
 
         {/* 아직 메뉴 선택이 끝나지 않았으면(=마지막이 leaf가 아니면) 지금 단계의 옵션을 맨 아래에 표시 */}
         {awaitingMenuChoice && (
-          <OptionList options={currentOptions} onSelect={selectNode} />
+          <div className="guide-animate-in">
+            <OptionList options={currentOptions} onSelect={selectNode} />
+          </div>
         )}
 
         {/* 가장 마지막에 답변(leaf)까지 도달했으면 마무리 멘트 */}
         {!awaitingMenuChoice && lastEvent && (
-          <div className="space-y-2">
+          <div className="guide-animate-in space-y-2">
             <BotBubble>더 궁금한 점이 있으신가요?</BotBubble>
-            <div className="flex justify-start">
+            <div className="flex justify-start gap-2">
+              <button
+                onClick={goBack}
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-500 shadow-sm active:bg-gray-50"
+              >
+                이전으로 돌아가기
+              </button>
               <button
                 onClick={restart}
                 className="rounded-2xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-600 shadow-sm active:bg-emerald-50"
@@ -176,10 +215,29 @@ export default function JoinGuide() {
             </p>
           ) : (
             <div className="pb-3">
-              <p className="px-1 pb-1.5 text-xs font-medium text-gray-400">
-                이런 질문을 찾으시나요?
-              </p>
-              <ul className="overflow-hidden rounded-2xl border border-gray-100">
+              <div className="mb-1.5 flex items-center justify-between px-1">
+                <p className="text-xs font-medium text-gray-400">
+                  이런 질문을 찾으시나요?
+                </p>
+                {/* 펼친 상태에서는 리스트가 길어질 수 있으니, 스크롤해도 항상 보이는
+                    위치(목록 바로 위)에 접기 버튼을 둔다. */}
+                {expanded && shortcutHits.length > SHORTCUT_PREVIEW_COUNT && (
+                  <button
+                    onClick={() => setExpanded(false)}
+                    className="rounded-full px-2 py-1 text-xs font-medium text-gray-400 active:bg-gray-100"
+                  >
+                    접기
+                  </button>
+                )}
+              </div>
+              <ul
+                className={cn(
+                  "overflow-hidden rounded-2xl border border-gray-100",
+                  // 펼친 상태일 때만 리스트 자체에 높이 제한 + 스크롤을 줘서
+                  // 항목이 많아도 화면을 뚫고 나가지 않게 한다.
+                  expanded && "max-h-[40vh] overflow-y-auto"
+                )}
+              >
                 {visibleHits.map((hit, idx) => (
                   <li key={hit.node.id}>
                     <button
@@ -208,14 +266,6 @@ export default function JoinGuide() {
                   className="mt-1.5 w-full rounded-xl py-2 text-xs font-medium text-gray-400 active:bg-gray-100"
                 >
                   {hiddenCount}개 더보기
-                </button>
-              )}
-              {expanded && shortcutHits.length > SHORTCUT_PREVIEW_COUNT && (
-                <button
-                  onClick={() => setExpanded(false)}
-                  className="mt-1.5 w-full rounded-xl py-2 text-xs font-medium text-gray-400 active:bg-gray-100"
-                >
-                  접기
                 </button>
               )}
             </div>
