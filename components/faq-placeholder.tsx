@@ -125,11 +125,9 @@ function FaqRow({
   isOpen: boolean;
   onToggle: () => void;
 }) {
-  // entry.widget이 지정돼 있으면 레지스트리에서 컴포넌트를 찾아온다.
-  // 없으면 그냥 undefined라서 아래에서 기존처럼 텍스트만 보여줌.
-  const WidgetComponent = entry.widget
-    ? faqWidgetRegistry[entry.widget]
-    : undefined;
+  // entry.widgets에 지정된 id들을 순서대로 레지스트리에서 찾아 컴포넌트 배열로 만든다.
+  // widgets가 없으면 빈 배열이라서 아래에서 기존처럼 텍스트만 보여줌.
+  const widgetIds = entry.widgets ?? [];
 
   return (
     <li>
@@ -158,8 +156,16 @@ function FaqRow({
           <p className="whitespace-pre-line text-sm leading-relaxed text-gray-500">
             {entry.answer}
           </p>
-          {/* 위젯이 있는 질문이면 답변 텍스트 아래에 인터랙티브 컴포넌트를 추가로 보여준다 */}
-          {WidgetComponent && <WidgetComponent />}
+          {/* 위젯이 있는 질문이면 답변 텍스트 아래에 인터랙티브 컴포넌트들을 순서대로 추가로 보여준다 */}
+          {widgetIds.length > 0 && (
+            <div className="space-y-3">
+              {widgetIds.map((widgetId) => {
+                const WidgetComponent = faqWidgetRegistry[widgetId];
+                if (!WidgetComponent) return null;
+                return <WidgetComponent key={widgetId} />;
+              })}
+            </div>
+          )}
         </div>
       )}
     </li>

@@ -19,12 +19,19 @@ function isLeaf(node: GuideNode) {
   return !node.children || node.children.length === 0;
 }
 
-// widget id -> 레지스트리에서 실제 컴포넌트를 찾아 렌더링.
-// 등록되지 않은 id가 들어오면(타입상 불가능하지만 방어적으로) 아무것도 안 그림.
-function renderWidget(widget: FaqWidgetId) {
-  const WidgetComponent = faqWidgetRegistry[widget];
-  if (!WidgetComponent) return null;
-  return <WidgetComponent />;
+// widget id 배열 -> 레지스트리에서 실제 컴포넌트들을 찾아 순서대로 렌더링.
+// 등록되지 않은 id가 들어오면(타입상 불가능하지만 방어적으로) 그 항목만 건너뜀.
+function renderWidgets(widgets: FaqWidgetId[] | undefined) {
+  if (!widgets || widgets.length === 0) return null;
+  return (
+    <div className="space-y-3">
+      {widgets.map((widget) => {
+        const WidgetComponent = faqWidgetRegistry[widget];
+        if (!WidgetComponent) return null;
+        return <WidgetComponent key={widget} />;
+      })}
+    </div>
+  );
 }
 
 // 채팅에 쌓이는 모든 사건을 "시간순 단일 타임라인"으로 관리한다.
@@ -124,8 +131,8 @@ export default function JoinGuide() {
               {leaf ? (
                 <>
                   <BotBubble>{event.node.answer}</BotBubble>
-                  {event.node.widget && (
-                    <div className="pl-9">{renderWidget(event.node.widget)}</div>
+                  {event.node.widgets && event.node.widgets.length > 0 && (
+                    <div className="pl-9">{renderWidgets(event.node.widgets)}</div>
                   )}
                 </>
               ) : (
