@@ -23,7 +23,6 @@ export const faqCategories: FaqCategoryInfo[] = [
 // 위젯 종류를 정의하는 id. 새 위젯을 추가할 때마다 여기에 한 줄씩 추가.
 export type FaqWidgetId =
   | "dog-age-calculator"
-  | "premium-estimator"
   | "contact-buttons"
   | "flyer-images"
   | "claim-contact-buttons";
@@ -192,8 +191,6 @@ export const faqEntries: FaqEntry[] = [
     answer:
       "네 맞습니다. 현재 분납 가능하시구요. 월납이 가능하지 않으나\n최대12개월 할부가가능하구요 무이자는 5개월까지 가능합니다.",
     category: "premium",
-    // 예시: 다른 종류의 위젯 (월 납입액 계산기)
-    widget: "premium-estimator",
   },
   {
     id: "faq-renewal-estimate",

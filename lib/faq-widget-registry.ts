@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 import type { FaqWidgetId } from "@/lib/faq-entries";
 import DogAgeCalculator from "@/components/faq-widgets/DogAgeCalculator";
-import PremiumEstimator from "@/components/faq-widgets/PremiumEstimator";
 import ContactButtons from "@/components/faq-widgets/ContactButtons";
 import FlyerImages from "@/components/faq-widgets/FlyerImages";
 import ClaimContactButtons from "@/components/faq-widgets/ClaimContactButtons";
@@ -15,7 +14,6 @@ import ClaimContactButtons from "@/components/faq-widgets/ClaimContactButtons";
 // faq-placeholder.tsx는 이 맵을 통해서만 위젯을 찾기 때문에 수정할 필요 없음.
 export const faqWidgetRegistry: Record<FaqWidgetId, ComponentType> = {
   "dog-age-calculator": DogAgeCalculator,
-  "premium-estimator": PremiumEstimator,
   "contact-buttons": ContactButtons,
   "flyer-images": FlyerImages,
   "claim-contact-buttons": ClaimContactButtons,
