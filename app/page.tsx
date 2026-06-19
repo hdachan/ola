@@ -1,10 +1,11 @@
+// app/page.tsx
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import JoinGuide from "@/components/join-guide";
 import Faq from "@/components/faq-placeholder";
-import MollyStudy from "@/components/molly-study"; // 새로 만들 컴포넌트
+import MollyStudy from "@/components/molly-study";
 import { cn } from "@/lib/utils";
 
 type TabId = "join-guide" | "faq" | "molly-study";
@@ -14,6 +15,8 @@ const tabs: { id: TabId; label: string }[] = [
   { id: "join-guide", label: "가입안내" },
   { id: "molly-study", label: "가입 안내문 설명" },
 ];
+
+const VERSION = "v1.0.0";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("faq");
@@ -58,6 +61,11 @@ export default function Home() {
         ) : (
           <Faq />
         )}
+      </div>
+
+      {/* 버전 표시 */}
+      <div className="fixed bottom-3 right-3 z-50">
+        <span className="text-[10px] text-gray-300 select-none">{VERSION}</span>
       </div>
     </main>
   );
