@@ -16,6 +16,35 @@ import { cn } from "@/lib/utils";
 
 const SHORTCUT_PREVIEW_COUNT = 3; // 키워드 보기에서 처음에 보여줄 개수, 나머지는 "더보기"
 
+// 검색어가 답변 본문 어디쯤 있는지 보여주기 위해, 매칭 위치 앞뒤로 짧게 잘라낸
+// 미리보기를 만든다. before/match/after 세 조각으로 나눠서 반환하면,
+// 화면에서는 match 부분에만 하이라이트를 입힐 수 있다.
+function buildAnswerSnippet(
+  answer: string | undefined,
+  query: string
+): { before: string; match: string; after: string } {
+  if (!answer) return { before: "", match: "", after: "" };
+  const trimmedQ = query.trim();
+  const lower = answer.toLowerCase();
+  const idx = lower.indexOf(trimmedQ.toLowerCase());
+  if (idx === -1) {
+    return { before: "", match: "", after: answer.slice(0, 40) };
+  }
+
+  const CONTEXT = 14; // 검색어 앞뒤로 보여줄 글자 수
+  const start = Math.max(0, idx - CONTEXT);
+  const end = Math.min(answer.length, idx + trimmedQ.length + CONTEXT);
+
+  const prefix = start > 0 ? "…" : "";
+  const suffix = end < answer.length ? "…" : "";
+
+  return {
+    before: prefix + answer.slice(start, idx),
+    match: answer.slice(idx, idx + trimmedQ.length),
+    after: answer.slice(idx + trimmedQ.length, end) + suffix,
+  };
+}
+
 function isLeaf(node: GuideNode) {
   return !node.children || node.children.length === 0;
 }
@@ -242,19 +271,47 @@ export default function JoinGuide() {
                   <li key={hit.node.id}>
                     <button
                       onClick={() => selectNode(hit.node)}
-                      className="flex w-full items-center gap-3 border-b border-gray-100 bg-white px-3.5 py-3 text-left last:border-b-0 active:bg-gray-50"
+                      className="flex w-full items-start gap-3 border-b border-gray-100 bg-white px-3.5 py-3 text-left last:border-b-0 active:bg-gray-50"
                     >
                       <span
-                        className={
+                        className={cn(
+                          "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
                           idx < 3
-                            ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-bold text-white"
-                            : "flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-200 text-[11px] font-bold text-gray-500"
-                        }
+                            ? "bg-emerald-500 text-white"
+                            : "bg-gray-200 text-gray-500"
+                        )}
                       >
                         {idx + 1}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-800">
-                        {hit.node.label}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] font-medium text-gray-800">
+                          {hit.node.label}
+                        </span>
+                        {/* 검색어가 질문에는 없고 답변 본문에만 있어서 매칭된 경우,
+                            왜 이 질문이 떴는지 알 수 있도록 답변 미리보기를 보여준다.
+                            검색어와 일치하는 부분은 노란색으로 표시해서 한눈에 보이게 한다. */}
+                        {hit.matchedIn === "answer" && (() => {
+                          const snippet = buildAnswerSnippet(
+                            hit.node.answer,
+                            trimmedQuery
+                          );
+                          return (
+                            <span className="mt-0.5 flex items-center gap-1 text-[11px] text-gray-400">
+                              <span className="shrink-0 rounded bg-gray-100 px-1 py-0.5 text-gray-500">
+                                답변 내용 일치
+                              </span>
+                              <span className="truncate">
+                                {snippet.before}
+                                {snippet.match && (
+                                  <mark className="rounded-sm bg-yellow-200 px-0.5 text-gray-700">
+                                    {snippet.match}
+                                  </mark>
+                                )}
+                                {snippet.after}
+                              </span>
+                            </span>
+                          );
+                        })()}
                       </span>
                     </button>
                   </li>

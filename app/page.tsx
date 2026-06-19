@@ -4,13 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import JoinGuide from "@/components/join-guide";
 import Faq from "@/components/faq-placeholder";
+import MollyStudy from "@/components/molly-study"; // 새로 만들 컴포넌트
 import { cn } from "@/lib/utils";
 
-type TabId = "join-guide" | "faq";
+type TabId = "join-guide" | "faq" | "molly-study";
 
 const tabs: { id: TabId; label: string }[] = [
   { id: "faq", label: "FAQ" },
   { id: "join-guide", label: "가입안내" },
+  { id: "molly-study", label: "몰리스 학습자료" },
 ];
 
 export default function Home() {
@@ -18,9 +20,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* 상단 영역: 로고(중앙) + 그 아래 대분류 탭 */}
       <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
-        {/* 로고. public/ola_logo.png 위치에 파일을 넣으면 바로 보입니다 */}
         <div className="flex justify-center py-3">
           <Image
             src="/ola_logo.png"
@@ -32,7 +32,6 @@ export default function Home() {
           />
         </div>
 
-        {/* 상단 대분류 탭. 모바일에서도 누르기 편하도록 큼직하게, 화면 폭에 꽉 차게 배치 */}
         <div className="mx-auto flex max-w-2xl">
           {tabs.map((tab) => (
             <button
@@ -52,7 +51,13 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
-        {activeTab === "join-guide" ? <JoinGuide /> : <Faq />}
+        {activeTab === "join-guide" ? (
+          <JoinGuide />
+        ) : activeTab === "molly-study" ? (
+          <MollyStudy />
+        ) : (
+          <Faq />
+        )}
       </div>
     </main>
   );

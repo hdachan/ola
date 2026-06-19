@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   faqCategories,
   faqEntries,
@@ -10,6 +10,8 @@ import {
 import { faqWidgetRegistry } from "@/lib/faq-widget-registry";
 import { cn } from "@/lib/utils";
 
+const PAGE_SIZE = 10;
+
 export default function Faq() {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -18,7 +20,9 @@ export default function Faq() {
   const [activeCategory, setActiveCategory] = useState<FaqCategoryId | null>(
     null
   );
+  const [page, setPage] = useState(1);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const listTopRef = useRef<HTMLDivElement>(null);
 
   const trimmedQuery = query.trim();
   const isSearching = trimmedQuery.length > 0;
@@ -41,18 +45,38 @@ export default function Faq() {
     return matchedEntries.filter((entry) => entry.category === activeCategory);
   }, [matchedEntries, isSearching, activeCategory]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(categoryFilteredEntries.length / PAGE_SIZE)
+  );
+  // 검색어를 바꾸거나 카테고리를 바꾸면 항상 1페이지부터 다시 보여준다.
+  // (다른 목록을 보고 있는데 예전 페이지 번호가 그대로 남아있으면 혼란스러우므로)
+  useEffect(() => {
+    setPage(1);
+  }, [trimmedQuery, activeCategory]);
+
+  const pagedEntries = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return categoryFilteredEntries.slice(start, start + PAGE_SIZE);
+  }, [categoryFilteredEntries, page]);
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   // 검색 중이 아닐 때는 카테고리별로 묶어서 보여준다.
   // 검색 중에는 굳이 묶지 않고 매칭된 것만 평평하게 보여줘서 한 번에 훑기 쉽게 한다.
+  // 그룹핑은 항상 "현재 페이지에 보일 10개"만 대상으로 한다 (전체를 다 그룹핑한 뒤 자르면
+  // 카테고리 경계와 페이지 경계가 어긋나 버리므로, 먼저 자르고 나서 그 안에서만 묶는다).
   const groupedByCategory = useMemo(() => {
     return faqCategories
       .map((category) => ({
         category,
-        entries: categoryFilteredEntries.filter(
-          (entry) => entry.category === category.id
-        ),
+        entries: pagedEntries.filter((entry) => entry.category === category.id),
       }))
       .filter((group) => group.entries.length > 0);
-  }, [categoryFilteredEntries]);
+  }, [pagedEntries]);
 
   function toggle(id: string) {
     setOpenId((prev) => (prev === id ? null : id));
@@ -188,6 +212,8 @@ export default function Faq() {
         </div>
       )}
 
+      <div ref={listTopRef} />
+
       {groupedByCategory.length === 0 ? (
         <div className="rounded-2xl bg-white px-5 py-10 text-center text-sm text-gray-400 shadow-sm">
           {isSearching
@@ -238,6 +264,93 @@ export default function Faq() {
           ))}
         </div>
       )}
+
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} onChange={goToPage} />
+      )}
+    </div>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  const WINDOW_SIZE = 5; // 한 번에 보여줄 페이지 번호 개수
+
+  // 5개짜리 창을 현재 페이지 기준으로 옮긴다. 창은 항상 5칸을 채우려고 하되,
+  // 맨 앞/맨 뒤에서는 범위를 벗어나지 않도록 시작점을 안쪽으로 당긴다.
+  // 예: 1페이지 -> [1,2,3,4,5] / 5페이지 -> [3,4,5,6,7] / 마지막 근처 -> 끝에 딱 맞춰 고정.
+  const windowStart = useMemo(() => {
+    const half = Math.floor(WINDOW_SIZE / 2);
+    let start = page - half;
+    start = Math.max(1, start);
+    start = Math.min(start, Math.max(1, totalPages - WINDOW_SIZE + 1));
+    return start;
+  }, [page, totalPages]);
+
+  const pageNumbers = useMemo(() => {
+    const windowEnd = Math.min(totalPages, windowStart + WINDOW_SIZE - 1);
+    const nums: number[] = [];
+    for (let p = windowStart; p <= windowEnd; p++) nums.push(p);
+    return nums;
+  }, [windowStart, totalPages]);
+
+  return (
+    <div className="mt-5 flex items-center justify-center gap-1">
+      <button
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        aria-label="이전 페이지"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-30"
+      >
+        <svg
+          className="h-4 w-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      {pageNumbers.map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors",
+            p === page
+              ? "bg-emerald-500 text-white"
+              : "text-gray-500 hover:bg-gray-100"
+          )}
+        >
+          {p}
+        </button>
+      ))}
+
+      <button
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        aria-label="다음 페이지"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-30"
+      >
+        <svg
+          className="h-4 w-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
     </div>
   );
 }
