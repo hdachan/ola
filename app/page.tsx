@@ -6,7 +6,7 @@ import Image from "next/image";
 import JoinGuide from "@/components/join-guide";
 import Faq from "@/components/faq-placeholder";
 import MollyStudy from "@/components/molly-study";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"; 
 
 type TabId = "join-guide" | "faq" | "molly-study";
 
@@ -27,7 +27,7 @@ export default function Home() {
         <div className="flex justify-center py-3">
           <Image
             src="/ola_logo.png"
-            alt="OLA 로고"
+            alt="OLA 로고."
             width={120}
             height={36}
             priority
