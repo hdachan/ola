@@ -12,7 +12,7 @@ type TabId = "join-guide" | "faq" | "molly-study";
 
 const tabs: { id: TabId; label: string }[] = [
   { id: "faq", label: "FAQ" },
-  { id: "join-guide", label: "키워드 검색" },
+  { id: "join-guide", label: "상담챗봇" },
   { id: "molly-study", label: "가입 안내문 설명" },
 ];
 
