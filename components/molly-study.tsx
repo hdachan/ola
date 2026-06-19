@@ -1,9 +1,237 @@
 // components/join-guide.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, X, ZoomIn } from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/* 라이트박스 컴포넌트                                                   */
+/* ------------------------------------------------------------------ */
+function Lightbox({
+  src,
+  alt,
+  onClose,
+}: {
+  src: string;
+  alt: string;
+  onClose: () => void;
+}) {
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [lastTouch, setLastTouch] = useState<{ x: number; y: number } | null>(null);
+  const [lastPinchDist, setLastPinchDist] = useState<number | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; ox: number; oy: number } | null>(null);
+
+  // 배경 스크롤 방지
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  // ESC 키로 닫기
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const resetZoom = () => {
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const clampOffset = useCallback(
+    (ox: number, oy: number, s: number) => {
+      const maxX = ((s - 1) * window.innerWidth) / 2;
+      const maxY = ((s - 1) * window.innerHeight) / 2;
+      return {
+        x: Math.max(-maxX, Math.min(maxX, ox)),
+        y: Math.max(-maxY, Math.min(maxY, oy)),
+      };
+    },
+    []
+  );
+
+  /* ---- 터치 이벤트 (핀치 줌 + 드래그) ---- */
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setLastTouch({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      setLastPinchDist(null);
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      setLastPinchDist(Math.hypot(dx, dy));
+      setLastTouch(null);
+    }
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 2 && lastPinchDist !== null) {
+      // 핀치 줌
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const newScale = Math.max(1, Math.min(5, scale * (dist / lastPinchDist)));
+      const clamped = clampOffset(offset.x, offset.y, newScale);
+      setScale(newScale);
+      setOffset(clamped);
+      setLastPinchDist(dist);
+    } else if (e.touches.length === 1 && lastTouch !== null && scale > 1) {
+      // 드래그 (확대 상태에서만)
+      const dx = e.touches[0].clientX - lastTouch.x;
+      const dy = e.touches[0].clientY - lastTouch.y;
+      const clamped = clampOffset(offset.x + dx, offset.y + dy, scale);
+      setOffset(clamped);
+      setLastTouch({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  };
+
+  const onTouchEnd = () => {
+    setLastTouch(null);
+    setLastPinchDist(null);
+    if (scale < 1.05) resetZoom();
+  };
+
+  /* ---- 더블탭 줌 토글 ---- */
+  const lastTapRef = useState<number>(0);
+  const onTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef[0] < 300) {
+      scale > 1 ? resetZoom() : setScale(2.5);
+    }
+    // @ts-ignore
+    lastTapRef[1](now);
+  };
+
+  /* ---- 마우스 드래그 (데스크톱) ---- */
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (scale <= 1) return;
+    setDragStart({ x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y });
+    setDragging(true);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragging || !dragStart) return;
+    const clamped = clampOffset(
+      dragStart.ox + (e.clientX - dragStart.x),
+      dragStart.oy + (e.clientY - dragStart.y),
+      scale
+    );
+    setOffset(clamped);
+  };
+
+  const onMouseUp = () => {
+    setDragging(false);
+    setDragStart(null);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && scale <= 1) onClose();
+      }}
+    >
+      {/* 닫기 버튼 */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 rounded-full bg-white/20 p-2 text-white backdrop-blur-sm hover:bg-white/30 transition-colors"
+        aria-label="닫기"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      {/* 줌 초기화 버튼 (확대 시에만) */}
+      {scale > 1 && (
+        <button
+          onClick={resetZoom}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 rounded-full bg-white/20 px-4 py-2 text-xs text-white backdrop-blur-sm hover:bg-white/30 transition-colors"
+        >
+          원래 크기로
+        </button>
+      )}
+
+      {/* 힌트 텍스트 */}
+      {scale === 1 && (
+        <p className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 text-xs text-white/50 whitespace-nowrap">
+          핀치로 확대 · 더블탭으로 2.5× 줌
+        </p>
+      )}
+
+      {/* 이미지 */}
+      <div
+        className="relative select-none"
+        style={{
+          transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
+          transition: dragging || lastPinchDist !== null ? "none" : "transform 0.2s ease",
+          cursor: scale > 1 ? (dragging ? "grabbing" : "grab") : "default",
+          touchAction: "none",
+        }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClick={onTap}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="max-h-screen max-w-screen object-contain"
+          style={{ maxHeight: "90vh", maxWidth: "95vw" }}
+          draggable={false}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 확대 가능한 이미지 래퍼                                               */
+/* ------------------------------------------------------------------ */
+function ZoomableImage({ src, alt }: { src: string; alt: string }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  return (
+    <>
+      <div
+        className="relative overflow-hidden rounded-lg border border-gray-100 cursor-zoom-in group"
+        onClick={() => setLightboxOpen(true)}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          width={800}
+          height={500}
+          className="w-full h-auto"
+        />
+        {/* 확대 힌트 오버레이 */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/10 transition-opacity">
+          <div className="rounded-full bg-white/80 p-2 shadow">
+            <ZoomIn className="h-5 w-5 text-gray-700" />
+          </div>
+        </div>
+      </div>
+
+      {lightboxOpen && (
+        <Lightbox
+          src={src}
+          alt={alt}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
+    </>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /* 가입조건 확인 질문 데이터                                              */
@@ -147,17 +375,7 @@ function ConditionItem({
 
       {open && (
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
-          {/* 사진 먼저 */}
-          <div className="overflow-hidden rounded-lg border border-gray-100">
-            <Image
-              src={image}
-              alt={`가입조건 ${num}번 이미지`}
-              width={800}
-              height={500}
-              className="w-full h-auto"
-            />
-          </div>
-          {/* 설명 텍스트 */}
+          <ZoomableImage src={image} alt={`가입조건 ${num}번 이미지`} />
           {content}
         </div>
       )}
@@ -170,6 +388,12 @@ function ConditionItem({
 /* ------------------------------------------------------------------ */
 function JoinScreenSection() {
   const [open, setOpen] = useState(false);
+
+  const images = [
+    { src: "/ola_join/ola_learning1.png", alt: "가입안내 이미지 1" },
+    { src: "/ola_join/ola_learning2.png", alt: "가입안내 이미지 2" },
+    { src: "/ola_join/ola_learning3.png", alt: "가입안내 이미지 3" },
+  ];
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
@@ -187,8 +411,9 @@ function JoinScreenSection() {
 
       {open && (
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
-          {/* 여기에 가입화면 관련 내용 채워주세요 */}
-          <p className="text-sm text-gray-500">가입화면 내용이 들어갈 자리입니다.</p>
+          {images.map((img) => (
+            <ZoomableImage key={img.src} src={img.src} alt={img.alt} />
+          ))}
         </div>
       )}
     </div>
@@ -217,11 +442,9 @@ function JoinConditionSection() {
 
       {open && (
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
-          {/* 머리말 */}
           <p className="text-xs text-gray-500 leading-relaxed">
             1~9번 중 <strong className="text-gray-700">3번만 예</strong>, 나머지 아니오일 때 보험료 조회 가능합니다.
           </p>
-          {/* 1~9번 개별 토글 */}
           {joinConditions.map((item) => (
             <ConditionItem
               key={String(item.num)}
