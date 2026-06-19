@@ -56,13 +56,13 @@ export const guideTrees: GuideNode[] = [
           {
             id: "faq-contract-04",
             label: "최소 몇 살부터 가능한가요?",
-            answer: "생후 60일 이후부터 가능합니다. (61일)",
+            answer: "(나이)생후 60일 이후부터 가능합니다. (61일)",
             widgets: ["dog-age-calculator"],
           },
           {
             id: "faq-contract-05",
             label: "최대 몇 살까지 가능한가요?",
-            answer: "12세까지 가능합니다. (26년도 기준 2013년 생일이 지나지 않았다면 가능) 갱신시 20세까지 보장됩니다. (즉 12세 때 가입해야 20세까지 보장된다는 의미)",
+            answer: "(나이)12세까지 가능합니다. (26년도 기준 2013년 생일이 지나지 않았다면 가능) 갱신시 20세까지 보장됩니다. (즉 12세 때 가입해야 20세까지 보장된다는 의미)",
             widgets: ["dog-age-calculator"],
           },
         ],

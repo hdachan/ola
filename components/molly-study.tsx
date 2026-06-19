@@ -146,7 +146,7 @@ export default function MollyStudy() {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-gray-50"
       >
-        <span className="text-sm font-semibold text-gray-800">몰리스 전단 해석</span>
+        <span className="text-sm font-semibold text-gray-800">올라 안내문 설명</span>
         {isOpen ? (
           <ChevronUp className="h-4 w-4 text-gray-400" />
         ) : (
