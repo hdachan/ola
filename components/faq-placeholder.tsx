@@ -19,6 +19,11 @@ const subgroupLabelMap = new Map(
   faqSubgroups.map((sg) => [sg.id, `${sg.code}. ${sg.label}`])
 );
 
+// 질문 앞의 "1. " "2. " 같은 패턴을 제거한 순수 질문 텍스트를 반환한다.
+function stripLeadingNumber(question: string): string {
+  return question.replace(/^\d+\.\s*/, "");
+}
+
 // 텍스트 안에서 검색어와 일치하는 모든 부분을 <mark>로 감싸서 노란색으로 강조한다.
 // 대소문자 구분 없이 찾되, 실제로 보여줄 때는 원문 그대로의 대소문자를 유지한다.
 // 검색어가 비어있으면 원문을 그대로 한 덩어리로 반환한다 (하이라이트 없음).
@@ -311,6 +316,13 @@ export default function Faq() {
                       entry.subgroup &&
                       entry.subgroup !== prevEntry?.subgroup;
 
+                    // subgroup이 있으면 subgroup 내 순번, 없으면 category 내 순번
+                    const subgroupIndex = entry.subgroup
+                      ? entries
+                          .slice(0, idx + 1)
+                          .filter((e) => e.subgroup === entry.subgroup).length
+                      : entries.slice(0, idx + 1).filter((e) => !e.subgroup).length;
+
                     return (
                       <li key={entry.id}>
                         {showSubgroupLabel && (
@@ -323,6 +335,7 @@ export default function Faq() {
                           isOpen={openId === entry.id}
                           onToggle={() => toggle(entry.id)}
                           searchQuery={trimmedQuery}
+                          subgroupIndex={subgroupIndex}
                         />
                       </li>
                     );
@@ -429,12 +442,14 @@ function FaqRow({
   isOpen,
   onToggle,
   searchQuery,
+  subgroupIndex,
 }: {
   entry: FaqEntry;
   isOpen: boolean;
   onToggle: () => void;
   // 검색 중일 때만 값이 들어오고, 검색 중이 아니면 빈 문자열이라 하이라이트가 적용되지 않는다.
   searchQuery: string;
+  subgroupIndex: number;
 }) {
   // entry.widgets에 지정된 id들을 순서대로 레지스트리에서 찾아 컴포넌트 배열로 만든다.
   // widgets가 없으면 빈 배열이라서 아래에서 기존처럼 텍스트만 보여줌.
@@ -459,8 +474,13 @@ function FaqRow({
         className="flex w-full items-start justify-between gap-3 px-5 py-4 text-left active:bg-gray-50"
       >
         <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-medium text-gray-900">
-            {highlightMatches(entry.question, searchQuery)}
+          <span className="flex items-start gap-2 text-[15px] font-medium text-gray-900">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[11px] font-semibold text-emerald-600">
+              {subgroupIndex}
+            </span>
+            <span className="min-w-0">
+              {highlightMatches(stripLeadingNumber(entry.question), searchQuery)}
+            </span>
           </span>
           {answerSnippet && (
             <span className="mt-0.5 flex items-center gap-1 text-[11px] text-gray-400">
