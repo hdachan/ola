@@ -212,7 +212,7 @@ export default function JoinGuide() {
         {/* 가장 마지막에 답변(leaf)까지 도달했으면 마무리 멘트 */}
         {!awaitingMenuChoice && lastEvent && (
           <div className="guide-animate-in space-y-2">
-            <BotBubble>더 궁금한 점이 있으신가요?</BotBubble>
+          
             <div className="flex justify-start gap-2">
               <button
                 onClick={goBack}
