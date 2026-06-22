@@ -71,7 +71,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mx-auto max-w-2xl px-4 pb-8 pt-4">
         <div className="border-t border-gray-200 pt-4">
-          <p className="text-center text-[10px] leading-relaxed text-gray-400">
+          <p className="text-center text-[10px] leading-relaxed text-gray-400 whitespace-pre-line">
             {NOTICE}
           </p>
 
