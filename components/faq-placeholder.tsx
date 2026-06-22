@@ -169,8 +169,9 @@ export default function Faq() {
     <div>
       <h1 className="mb-1 text-xl font-bold text-gray-900">FAQ</h1>
       <p className="mb-5 text-sm text-gray-500">
-        자주 묻는 질문을 검색하거나 펼쳐서 확인해보세요
+        자주 묻는 질문을 검색하거나 펼쳐서 확인해보세요 / B,G,I,J중 일부 답변이 없습니다.
       </p>
+
 
       {/* 검색창 */}
       <div className="relative mb-4">

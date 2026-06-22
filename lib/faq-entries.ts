@@ -313,14 +313,14 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-premium-03",
     question: "3. 소형견·중형견·대형견 보험료 차이가 얼마나 나나요?",
-    answer: "테스트",
+    answer: "",
     category: "premium",
     subgroup: "premium-level",
   },
   {
     id: "faq-premium-04",
     question: "4. 강아지와 고양이 보험료가 다른가요?",
-    answer: "테스트",
+    answer: "",
     category: "premium",
     subgroup: "premium-level",
   },

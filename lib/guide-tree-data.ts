@@ -186,12 +186,12 @@ export const guideTrees: GuideNode[] = [
           {
             id: "faq-premium-03",
             label: "소형견·중형견·대형견 보험료 차이가 얼마나 나나요?",
-            answer: "테스트",
+            answer: "",
           },
           {
             id: "faq-premium-04",
             label: "강아지와 고양이 보험료가 다른가요?",
-            answer: "테스트",
+            answer: "",
           },
           {
             id: "faq-premium-05",
