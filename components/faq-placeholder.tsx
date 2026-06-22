@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   faqCategories,
   faqEntries,
+  faqSubgroups,
   type FaqCategoryId,
   type FaqEntry,
 } from "@/lib/faq-entries";
@@ -11,6 +12,72 @@ import { faqWidgetRegistry } from "@/lib/faq-widget-registry";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
+
+// subgroup id로 "코드. 이름" 형태의 표시용 문구를 빠르게 찾기 위한 맵.
+// faqSubgroups가 단일 진실 소스이고, 여기서는 화면에 보여줄 문자열만 미리 조합해둔다.
+const subgroupLabelMap = new Map(
+  faqSubgroups.map((sg) => [sg.id, `${sg.code}. ${sg.label}`])
+);
+
+// 텍스트 안에서 검색어와 일치하는 모든 부분을 <mark>로 감싸서 노란색으로 강조한다.
+// 대소문자 구분 없이 찾되, 실제로 보여줄 때는 원문 그대로의 대소문자를 유지한다.
+// 검색어가 비어있으면 원문을 그대로 한 덩어리로 반환한다 (하이라이트 없음).
+function highlightMatches(text: string, query: string): React.ReactNode {
+  if (!query) return text;
+  const lower = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+  let matchIndex = lower.indexOf(lowerQuery, cursor);
+
+  while (matchIndex !== -1) {
+    if (matchIndex > cursor) {
+      parts.push(text.slice(cursor, matchIndex));
+    }
+    parts.push(
+      <mark
+        key={matchIndex}
+        className="rounded-sm bg-yellow-200 text-gray-900"
+      >
+        {text.slice(matchIndex, matchIndex + query.length)}
+      </mark>
+    );
+    cursor = matchIndex + query.length;
+    matchIndex = lower.indexOf(lowerQuery, cursor);
+  }
+
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor));
+  }
+
+  return parts;
+}
+
+// 검색어가 답변 본문 어디쯤 있는지 보여주기 위해, 매칭 위치 앞뒤로 짧게 잘라낸
+// 미리보기를 만든다. before/match/after 세 조각으로 나눠서 반환하면,
+// 화면에서는 match 부분에만 하이라이트를 입힐 수 있다.
+function buildAnswerSnippet(
+  answer: string,
+  query: string
+): { before: string; match: string; after: string } {
+  const lower = answer.toLowerCase();
+  const idx = lower.indexOf(query.toLowerCase());
+  if (idx === -1) return { before: "", match: "", after: answer.slice(0, 40) };
+
+  const CONTEXT = 14; // 검색어 앞뒤로 보여줄 글자 수
+  const start = Math.max(0, idx - CONTEXT);
+  const end = Math.min(answer.length, idx + query.length + CONTEXT);
+
+  const prefix = start > 0 ? "…" : "";
+  const suffix = end < answer.length ? "…" : "";
+
+  return {
+    before: prefix + answer.slice(start, idx),
+    match: answer.slice(idx, idx + query.length),
+    after: answer.slice(idx + query.length, end) + suffix,
+  };
+}
 
 export default function Faq() {
   const [query, setQuery] = useState("");
@@ -247,13 +314,14 @@ export default function Faq() {
                       <li key={entry.id}>
                         {showSubgroupLabel && (
                           <p className="bg-gray-50 px-5 py-1.5 text-[11px] font-medium text-gray-400">
-                            {entry.subgroup}
+                            {subgroupLabelMap.get(entry.subgroup!)}
                           </p>
                         )}
                         <FaqRow
                           entry={entry}
                           isOpen={openId === entry.id}
                           onToggle={() => toggle(entry.id)}
+                          searchQuery={trimmedQuery}
                         />
                       </li>
                     );
@@ -359,27 +427,60 @@ function FaqRow({
   entry,
   isOpen,
   onToggle,
+  searchQuery,
 }: {
   entry: FaqEntry;
   isOpen: boolean;
   onToggle: () => void;
+  // 검색 중일 때만 값이 들어오고, 검색 중이 아니면 빈 문자열이라 하이라이트가 적용되지 않는다.
+  searchQuery: string;
 }) {
   // entry.widgets에 지정된 id들을 순서대로 레지스트리에서 찾아 컴포넌트 배열로 만든다.
   // widgets가 없으면 빈 배열이라서 아래에서 기존처럼 텍스트만 보여줌.
   const widgetIds = entry.widgets ?? [];
 
+  // 검색어가 질문에는 없고 답변 본문에만 있는 경우, 평소엔 닫혀 있어서 안 보이니까
+  // 질문 아래에 작은 미리보기를 함께 보여준다. (펼쳐져 있을 때는 답변 전체에 이미
+  // 하이라이트가 보이므로 중복으로 보여줄 필요 없음)
+  const matchedOnlyInAnswer =
+    searchQuery.length > 0 &&
+    !entry.question.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    entry.answer.toLowerCase().includes(searchQuery.toLowerCase());
+  const answerSnippet =
+    matchedOnlyInAnswer && !isOpen
+      ? buildAnswerSnippet(entry.answer, searchQuery)
+      : null;
+
   return (
     <div>
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left active:bg-gray-50"
+        className="flex w-full items-start justify-between gap-3 px-5 py-4 text-left active:bg-gray-50"
       >
-        <span className="text-[15px] font-medium text-gray-900">
-          {entry.question}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-medium text-gray-900">
+            {highlightMatches(entry.question, searchQuery)}
+          </span>
+          {answerSnippet && (
+            <span className="mt-0.5 flex items-center gap-1 text-[11px] text-gray-400">
+              <span className="shrink-0 rounded bg-gray-100 px-1 py-0.5 text-gray-500">
+                답변 내용 일치
+              </span>
+              <span className="truncate">
+                {answerSnippet.before}
+                {answerSnippet.match && (
+                  <mark className="rounded-sm bg-yellow-200 px-0.5 text-gray-700">
+                    {answerSnippet.match}
+                  </mark>
+                )}
+                {answerSnippet.after}
+              </span>
+            </span>
+          )}
         </span>
         <svg
           className={cn(
-            "h-4 w-4 flex-shrink-0 text-gray-400 transition-transform",
+            "mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400 transition-transform",
             isOpen && "rotate-180"
           )}
           viewBox="0 0 24 24"
@@ -393,7 +494,7 @@ function FaqRow({
       {isOpen && (
         <div className="px-5 pb-4">
           <p className="whitespace-pre-line text-sm leading-relaxed text-gray-500">
-            {entry.answer}
+            {highlightMatches(entry.answer, searchQuery)}
           </p>
           {/* 위젯이 있는 질문이면 답변 텍스트 아래에 인터랙티브 컴포넌트들을 순서대로 추가로 보여준다 */}
           {widgetIds.length > 0 && (
