@@ -285,8 +285,8 @@ const joinConditions = [
     image: "/ola_join/ola_join4.png",
     content: (
       <p className="text-sm text-gray-700 leading-relaxed">
-        해당 질병이 특약으로 보장되기 때문에 과거부터 현재까지 기왕증, 즉 병력이 있으면 가입이
-        불가능하나 *피부병, 구강질환, 치과치료는{" "}
+        해당 질병이 특약으로 보장되기 때문에 
+        *피부병, 구강질환, 치과치료는{" "}
         <strong>3개월 이내 이력만 없으면 가능.</strong>
       </p>
     ),
@@ -333,13 +333,12 @@ const joinConditions = [
     image: "/ola_join/ola_join9.png",
     content: (
       <p className="text-sm text-gray-700 leading-relaxed">
-        다른 펫보험에 중복가입 — 중복으로 가입하면 중복 보상이 되지 않기 때문에{" "}
-        <strong>가입조건에서 가입 불가.</strong>
+        다른 펫보험에 중복가입 —  중복으로 가입하면 중복 보상이 되지 않는다고 고지예정
+
         <br />
-        고객이 타 펫보험 해지할 경우 올라 가입이 가능하며, 이 경우 가입조건 답변을 체크해 보고
-        보험료 산출이 나와야 가능.
+        고객이 타 펫보험 해지할 경우 , 
+        이 경우 가입조건 답변을 체크해 보고 보험료 산출까지 확인 권고
         <br />
-        <span className="text-gray-400 text-xs">※ 해당 조항 삭제 예정</span>
       </p>
     ),
   },

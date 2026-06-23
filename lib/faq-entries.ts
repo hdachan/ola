@@ -339,7 +339,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-premium-07",
     question: "1년 후 갱신시 보험료가 달라지나요?",
-    answer: "연령, 손해율에 따라 보험료가 달라지거나 인상될 수 있습니다.",
+    answer: "연령,품종에 따라 보험료가 달라지거나 인상될 수 있습니다(청구를 많이 했다고 인상 되는 것은 아님)",
     category: "premium",
     subgroup: "premium-change",
   },
