@@ -900,7 +900,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-exclusion-11",
     question: "선천성 질환이 있는 아이도 가입할 수 있나요?",
-    answer: "가입 자체는 가능할 수 있으나, 선천성·유전성질병에 의한 손해는 원칙적으로 보상하지 않아요(치료비 특별약관 제3조 ①-13호 가). 단, 보험기간 중 최초로 발견된 경우에는 해당 보험기간에 한해 보상해요.",
+    answer: "가입 자체는 가능할 수 있으나, 선천성·유전성질병에 의한 손해는 원칙적으로 보상하지 않아요.s 단, 보험기간 중 최초로 발견된 경우에는 해당 보험기간에 한해 보상해요.",
     category: "exclusion",
     subgroup: "exclusion-congenital",
   },
@@ -997,6 +997,13 @@ export const faqEntries: FaqEntry[] = [
     category: "exclusion",
     subgroup: "exclusion-other",
   },
+  {
+    id: "faq-exclusion-25",
+    question: "맹견이 사람을 물었어요",
+    answer: "맹견은 보험 가입 가능하나 배상책임에서 물림 사고는 보상하지 않습니다.",
+    category: "exclusion",
+    subgroup: "exclusion-other",
+  },
 
   // ════════════════════════════════════════════════════
   // 갱신·해지·계약 변경
@@ -1004,21 +1011,21 @@ export const faqEntries: FaqEntry[] = [
   // 갱신
   {
     id: "faq-renewal-01",
-    question: "보험이자동으로갱신된다고하는데,갱신거절을당할수도있나요?",
+    question: "1년 후 갱신시, 갱신거절을 당할 수도 있나요?",
     answer: "",
     category: "renewal",
     subgroup: "renewal-renew",
   },
   {
     id: "faq-renewal-02",
-    question: "갱신거절이되는조건은무엇인가요?",
+    question: "갱신거절이 되는 조건은 무엇인가요?",
     answer: "",
     category: "renewal",
     subgroup: "renewal-renew",
   },
   {
     id: "faq-renewal-03",
-    question: "갱신시보험조건(보장내용)이바뀔수있나요?",
+    question: "갱신 시 보험 조건(보장내용)이 바뀔 수 있나요?",
     answer: "갱신시 보장내용은 변동 없으며 대기기간(면책기간)이 없습니다.",
     category: "renewal",
     subgroup: "renewal-renew",
@@ -1026,7 +1033,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-renewal-04",
     question: "갱신 전에 미리 알려 주나요? 얼마나 전에 알려 주나요?",
-    answer: "",
+    answer: "1년 후 갱신 전에 알림톡 등으로 알려드립니다.",
     category: "renewal",
     subgroup: "renewal-renew",
   },
@@ -1054,14 +1061,14 @@ export const faqEntries: FaqEntry[] = [
   },
   {
     id: "faq-renewal-08",
-    question: "가입후특약을추가할수있나요?",
+    question: "가입후 특약을 추가할 수 있나요?",
     answer: "올라는 피부병,구강질환,치과, 슬관절 등의 특약이 포함되어 있고 따로 특약은 없습니다.",
     category: "renewal",
     subgroup: "renewal-change",
   },
   {
     id: "faq-renewal-09",
-    question: "보험료납입방법(월납↔연납)을중간에바꿀수있나요?",
+    question: "보험료 납입방법(월납↔연납)을 중간에 바꿀 수 있나요?",
     answer: "현재는 연납만 가능하나 (자동차보험처럼) 카드 할부 12개월까지 가능하고 무이자 할부는 5개월가지 가능합니다. (우리카드 6개월)",
     category: "renewal",
     subgroup: "renewal-change",
@@ -1077,21 +1084,21 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-renewal-11",
     question: "해약환급급 및 만기환급금",
-    answer: "만기환급금은 없으며 해약시 보험사가 제반비용 계산 후 일할계산하여 돌려드립니다. 보험계약 대출제도는 없습니다.",
+    answer: "만기환급금은 없으며 해약시 보험사가 제반비용 계산 후 일할계산하여 돌려드립니다. 보험계약 대출제도는 없습니다. (1년마다 재가입형 이라 청구이력이 없으면 해지 가능하지 않음.)",
     category: "renewal",
     subgroup: "renewal-cancel",
   },
   {
     id: "faq-renewal-12",
-    question: "중간에 해지하면 환급금을 받을수있나요?",
-    answer: "네. 해지시 비용 공제 후 경과하지 않은 기간에 대해 일단위로 계산한 보험료를 환급해요",
+    question: "중간에 해지하면 환급금을 받을 수 있나요?",
+    answer: "네. 해지시 비용 공제 후 경과하지 않은 기간에 대해 일단위로 계산한 보험료를 환급해요. (1년마다 재가입형 이라 청구이력이 없으면 해지 가능하지 않음.)",
     category: "renewal",
     subgroup: "renewal-cancel",
   },
   {
     id: "faq-renewal-13",
     question: "해지시 환급금이 납입한 보험료보다 적을수있나요?",
-    answer: "네. 계약자 책임있는 사유로 해지하는 경우 이미 경과한 기간에 대해 단기요율로 계산한 보험료를 공제한 잔액을 환급해요. 경과기간이 길수록 환급금이 적어져요.",
+    answer: "네. 계약자 책임있는 사유로 해지하는 경우 이미 경과한 기간에 대해 단기요율로 계산한 보험료를 공제한 잔액을 환급해요. 경과기간이 길수록 환급금이 적어져요. (1년마다 재가입형 이라 청구이력이 없으면 해지 가능하지 않음.)",
     category: "renewal",
     subgroup: "renewal-cancel",
   },
@@ -1119,7 +1126,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-renewal-17",
     question: "부활시 대기기간이 다시 적용되나요?",
-    answer: "(현재 선연납이라 이 케이스가 발생할 일은 없음) 부활의 경우 기존계약의 효력을 회복하는 것이므로 대기기간이 새로시작되지않아요.단,부활시에도 고지의무가 적용돼요",
+    answer: "(현재 선연납이라 이 케이스가 발생할 일은 없음) 부활의 경우 기존계약의 효력을 회복하는 것이므로 대기기간이 새로 시작되지 않아요.단,부활시에도 고지의무가 적용돼요",
     category: "renewal",
     subgroup: "renewal-cancel",
   },
