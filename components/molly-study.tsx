@@ -273,9 +273,8 @@ const joinConditions = [
           고양이백혈병바이러스감염증
         </p>
         <p>
-          <strong>해당 예방 접종을 했어야 가입 가능</strong>
+          (가입 시 "예"로 권유하고 해당 예방접종을 하지 않았을 경우 발생한 해당질병은 보상하지 않는다는 것을 설명)
           <br />
-          <span className="text-gray-500">(해당 예방접종을 하지 않았을 경우 발생한 해당질병은 보상하지 않기 때문)</span>
         </p>
       </div>
     ),
@@ -443,6 +442,7 @@ function JoinConditionSection() {
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
           <p className="text-xs text-gray-500 leading-relaxed">
             1~9번 중 <strong className="text-gray-700">3번만 예</strong>, 나머지 아니오일 때 보험료 조회 가능합니다.
+            <p>현재 4-5,7은 과거부터 현재이나 <strong>4,5번은 3개월이내 이력없으면 가능 7번은 6개월이내 이력없으면 가능</strong></p>
           </p>
           {joinConditions.map((item) => (
             <ConditionItem
