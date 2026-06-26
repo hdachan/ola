@@ -997,13 +997,6 @@ export const faqEntries: FaqEntry[] = [
     category: "exclusion",
     subgroup: "exclusion-other",
   },
-  {
-    id: "faq-exclusion-25",
-    question: "맹견이 사람을 물었어요",
-    answer: "맹견은 보험 가입 가능하나 배상책임에서 물림 사고는 보상하지 않습니다.",
-    category: "exclusion",
-    subgroup: "exclusion-other",
-  },
 
   // ════════════════════════════════════════════════════
   // 갱신·해지·계약 변경

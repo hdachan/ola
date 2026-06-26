@@ -223,7 +223,7 @@ export const guideTrees: GuideNode[] = [
           {
             id: "faq-premium-08",
             label: "갱신할 때마다 보험료가 오른다는데, 얼마나 오르나요?",
-            answer: "나이, 손해율 등에 따라 보험료가 오를 수 있습니다.",
+            answer: "연령,품종에 따라 보험료가 달라지거나 인상될 수 있습니다(청구를 많이 했다고 인상 되는 것은 아님)",
           },
         ],
       },
@@ -493,11 +493,6 @@ export const guideTrees: GuideNode[] = [
             id: "faq-exclusion-24",
             label: "반려동물이 싸움(투견 등)을 하다 다쳤을 때도 보장이 안 되나요?",
             answer: "반려동물을 범죄행위, 투견, 실험 등 유사 목적으로 이용함으로써 발생한 손해는 보상하지 않아요",
-          },
-          {
-            id: "faq-exclusion-25",
-            label: "맹견이 사람을 물었어요",
-            answer: "맹견은 보험 가입 가능하나 배상책임에서 물림 사고는 보상하지 않습니다.",
           },
 
         ],
