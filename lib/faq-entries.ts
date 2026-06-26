@@ -197,7 +197,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-contract-08",
     question: "가입자의 계약 후 변동 사항",
-    answer: "기재사항을 변경하고자 할 때 또는 변경이 생겼음을 알 때",
+    answer: "기재사항을 변경하고자 할 때 또는 변경이 생겼음을 알 때 이를 보험사에 알려야 합니다.",
     category: "contract",
     subgroup: "contract-process",
   },
