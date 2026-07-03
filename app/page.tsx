@@ -15,11 +15,12 @@ const tabs: { id: TabId; label: string }[] = [
   { id: "join-guide", label: "상담챗봇" },
   { id: "molly-study", label: "가입 화면 및 약관" },
 ];
+
 const NOTICE = `이 내용은 약관을 준용하여 도호가 제작한 상담 보조자료일 뿐이며
 고객이나 계약자 혹은 외부에 배포하거나 게시할 수 없습니다.
 관련 내용은 언제나 변경 및 업데이트 될 수 있습니다.`;
 
-const VERSION = "v1.0.0";
+const VERSION = "v2.0.0";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("faq");
@@ -71,13 +72,25 @@ export default function Home() {
       {/* Footer */}
       <footer className="mx-auto max-w-2xl px-4 pb-8 pt-4">
         <div className="border-t border-gray-200 pt-4">
-          <p className="text-center text-[10px] leading-relaxed text-gray-400 whitespace-pre-line">
+          <p className="whitespace-pre-line text-center text-[10px] leading-relaxed text-gray-400">
             {NOTICE}
           </p>
 
           <p className="mt-2 text-center text-[10px] text-gray-300">
             {VERSION}
           </p>
+
+          {/* 카카오톡 상담 */}
+          <div className="mt-3 flex justify-center">
+            <a
+              href="http://pf.kakao.com/_VsxgHn/chat"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-medium text-gray-500 underline underline-offset-2 hover:text-gray-700"
+            >
+              💬 카카오톡 상담
+            </a>
+          </div>
         </div>
       </footer>
     </main>
