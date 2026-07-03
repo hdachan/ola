@@ -442,7 +442,7 @@ function JoinConditionSection() {
         <div className="border-t border-gray-100 px-5 py-4 space-y-3">
           <p className="text-xs text-gray-500 leading-relaxed">
             1~9번 중 <strong className="text-gray-700">3번만 예</strong>, 나머지 아니오일 때 보험료 조회 가능합니다.
-            <p>현재 4-5,7은 과거부터 현재이나 <strong>4,5번은 3개월이내 이력없으면 가능 7번은 6개월이내 이력없으면 가능</strong></p>
+            <p>현재 4-5,7은 과거부터 현재이나 4,5번은 3개월이내 이력없으면 가능 7번은 6개월이내 이력없으면 가능</p>
           </p>
           {joinConditions.map((item) => (
             <ConditionItem

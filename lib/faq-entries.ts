@@ -165,7 +165,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-contract-04",
     question: "(나이)최소 몇 살부터 가능한가요?",
-    answer: "생후 60일 이후부터 가능합니다. (61일)",
+    answer:"생후 60일 이후부터 가능합니다. (61일)\n\n※ 보험료는 납입 완료일의 24시(00:00) 기준 연령으로 산정되므로, 생일이 지나면 다음 연령 기준 보험료가 적용될 수 있습니다.",
     category: "contract",
     subgroup: "contract-eligibility",
     widgets: ["dog-age-calculator"],
@@ -173,7 +173,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-contract-05",
     question: "(나이)최대 몇 살까지 가능한가요?",
-    answer: "12세까지 가능합니다. (26년도 기준 2013년 생일이 지나지 않았다면 가능) 갱신시 20세까지 보장됩니다. (즉 12세 때 가입해야 20세까지 보장된다는 의미)",
+    answer: "12세까지 가능합니다. (26년도 기준 2013년 생일이 지나지 않았다면 가능) 갱신시 20세까지 보장됩니다. (즉 12세 때 가입해야 20세까지 보장된다는 의미)\n\n※ 보험료는 납입 완료일의 24시(00:00) 기준 연령으로 산정되므로, 생일이 지나면 다음 연령 기준 보험료가 적용될 수 있습니다.",
     category: "contract",
     subgroup: "contract-eligibility",
     widgets: ["dog-age-calculator"],
@@ -1234,6 +1234,12 @@ export const faqEntries: FaqEntry[] = [
     id: "faq-general-06",
     question: "예금자 보호법 보호대상",
     answer: "이 계약은 법인(이마트)이 계약자·보험료 납부자인 단체계약으로,예금자 보호법 보호대상에는 해당하지 않는 구조예요.",
+    category: "general",
+  },
+    {
+    id: "faq-general-07",
+    question: "카드번호 15자리",
+    answer: "아멕스 계열의 카드는 번호가 15자리로 현재 가입 전산에서 처리가 되지 않아 이 경우 고객센터에 이관해서 수동 가입해야 합니다.",
     category: "general",
   },
 ];
