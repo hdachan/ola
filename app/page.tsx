@@ -83,7 +83,7 @@ export default function Home() {
           {/* 카카오톡 상담 */}
           <div className="mt-3 flex justify-center">
             <a
-              href="http://pf.kakao.com/_VsxgHn/chat"
+              href="http://pf.kakao.com/_VsxgHn"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] font-medium text-gray-500 underline underline-offset-2 hover:text-gray-700"
