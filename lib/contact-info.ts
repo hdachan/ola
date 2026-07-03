@@ -3,5 +3,5 @@
 export const contactInfo = {
   phone: "1522-5179",
   email: "csolapet@gmail.com",
-  kakaoChannelUrl: "https://pf.kakao.com/_VsxgHn/chat",
+  kakaoChannelUrl: "http://pf.kakao.com/_VsxgHn",
 };
