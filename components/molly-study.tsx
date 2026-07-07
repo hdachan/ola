@@ -399,7 +399,7 @@ function JoinScreenSection() {
         onClick={() => setOpen((p) => !p)}
         className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
       >
-        <span className="text-sm font-semibold text-gray-800">가입화면</span>
+        <span className="text-sm font-semibold text-gray-800">가입안내문</span>
         {open ? (
           <ChevronUp className="h-4 w-4 text-gray-400" />
         ) : (
