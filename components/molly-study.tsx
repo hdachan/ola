@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronUp, X, ZoomIn } from "lucide-react";
+import { claimContactInfo } from "@/lib/claim-contact-info";
 
 /* ------------------------------------------------------------------ */
 /* 라이트박스 컴포넌트                                                   */
@@ -556,6 +557,52 @@ function TermsConditionsScreenSection() {
 }
 
 
+function TermsConditionsScreenSection2() {
+  const [open, setOpen] = useState(false);
+
+const links = [
+  {
+    href: claimContactInfo.claimFormUrl,
+    label: "보험금 청구서 다운로드",
+  },
+];
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-sm font-semibold text-gray-800">
+          올라 청구 서류
+        </span>
+        {open ? (
+          <ChevronUp className="h-4 w-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        )}
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 px-5 py-4 space-y-2">
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-lg border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 
 /* ------------------------------------------------------------------ */
@@ -568,6 +615,7 @@ export default function JoinGuide() {
       <JoinConditionSection />
       <QRScreenSection />
       <TermsConditionsScreenSection />
+      <TermsConditionsScreenSection2 />
     </div>
   );
 }

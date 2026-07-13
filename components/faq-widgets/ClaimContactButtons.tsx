@@ -1,11 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Mail, Printer, MapPin, Copy, Check, ChevronRight } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  Printer,
+  MapPin,
+  Copy,
+  Check,
+  ChevronRight,
+  FileText,
+} from "lucide-react";
 import { claimContactInfo } from "@/lib/claim-contact-info";
 
 const telHref = `tel:${claimContactInfo.phone.replace(/[^0-9+]/g, "")}`;
 const mailHref = `mailto:${claimContactInfo.email}`;
+const claimFormHref = claimContactInfo.claimFormUrl;
 
 export default function ClaimContactButtons() {
   // 어떤 줄을 복사했는지 키로 구분해서, 팩스/주소가 각자 독립적으로 "복사됨"을 표시한다.
@@ -24,6 +34,7 @@ export default function ClaimContactButtons() {
 
   return (
     <div className="mt-3 space-y-1">
+      {/* 대표번호 */}
       <a
         href={telHref}
         className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium text-gray-700 transition-colors active:bg-gray-50"
@@ -35,6 +46,7 @@ export default function ClaimContactButtons() {
         <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
       </a>
 
+      {/* 이메일 */}
       <a
         href={mailHref}
         className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium text-gray-700 transition-colors active:bg-gray-50"
@@ -46,8 +58,23 @@ export default function ClaimContactButtons() {
         <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
       </a>
 
+      {/* 청구서 다운로드 */}
+      <a
+        href={claimFormHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm font-medium text-gray-700 transition-colors active:bg-gray-50"
+      >
+        <FileText className="h-4 w-4 flex-shrink-0 text-emerald-600" />
+        <span className="flex-1">
+          보험금 청구서 다운로드
+        </span>
+        <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-300" />
+      </a>
+
       <div className="my-1 border-t border-gray-100" />
 
+      {/* 팩스 */}
       <button
         onClick={() => copyText("fax", claimContactInfo.fax)}
         className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-sm font-medium text-gray-700 transition-colors active:bg-gray-50"
@@ -63,6 +90,7 @@ export default function ClaimContactButtons() {
         )}
       </button>
 
+      {/* 우편 주소 */}
       <button
         onClick={() => copyText("address", claimContactInfo.postalAddress)}
         className="flex w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left text-sm font-medium text-gray-700 transition-colors active:bg-gray-50"

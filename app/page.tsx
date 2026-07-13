@@ -13,14 +13,14 @@ type TabId = "join-guide" | "faq" | "molly-study";
 const tabs: { id: TabId; label: string }[] = [
   { id: "faq", label: "FAQ" },
   { id: "join-guide", label: "상담챗봇" },
-  { id: "molly-study", label: "가입 화면 및 약관" },
+  { id: "molly-study", label: "가입화면,약관,청구서류" },
 ];
 
 const NOTICE = `이 내용은 약관을 준용하여 도호가 제작한 상담 보조자료일 뿐이며
 고객이나 계약자 혹은 외부에 배포하거나 게시할 수 없습니다.
 관련 내용은 언제나 변경 및 업데이트 될 수 있습니다.`;
 
-const VERSION = "v2.0.0";
+const VERSION = "v3.0.0";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("faq");

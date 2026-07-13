@@ -5,4 +5,6 @@ export const claimContactInfo = {
   postalAddress:
     "(54966) 전라북도 전주시 완산구 서원로 99\n전주우체국 사서함 15호\nDB손해보험 사고접수 팀",
   phone: "1588-0100",
+  claimFormUrl:
+    "https://www.idbins.com/pcweb/bizxpress/ct/dc/__etc/%ED%8E%AB%EB%B3%B4%ED%97%98%EB%B3%B4%ED%97%98%EA%B8%88%EC%B2%AD%EA%B5%AC%EC%84%9C_%EC%83%81%EC%84%B8_20241014.pdf",
 };
