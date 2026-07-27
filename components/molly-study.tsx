@@ -469,8 +469,20 @@ function QRScreenSection() {
 
   const links = [
     {
-      href: "https://drive.google.com/file/d/1RQ7fxofdOBR8kZJuvNn89rN6VGyBUb6P/view?usp=sharing",
-      label: "QR 이후 가입과정 다운로드",
+      href: "https://drive.google.com/file/d/1KDqeQhwDidOPDKn1ySt2hv0uFGPCrTgI/view?usp=sharing",
+      label: "1. QR 이후 가입과정 다운로드",
+    },
+    {
+      href: "https://drive.google.com/file/d/1QGar06m9n0LtIewUh_Dxuabp9g9Dib6H/view?usp=sharing",
+      label: "2. QR 이후 가입과정 다운로드",
+    },
+    {
+      href: "https://drive.google.com/file/d/1_VKdvspM49aC6cPSir-ieOKUYF-DdYr6/view?usp=sharing",
+      label: "3. QR 이후 가입과정 다운로드",
+    },
+    {
+      href: "https://drive.google.com/file/d/13qF9f5CSRP5AE_xy7F-D-nKdkCsZTivB/view?usp=sharing",
+      label: "4. QR 이후 가입과정 다운로드",
     },
   ];
 
@@ -506,7 +518,6 @@ function QRScreenSection() {
     </div>
   );
 }
-
 
 
 
