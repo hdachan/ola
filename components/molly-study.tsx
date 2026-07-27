@@ -470,19 +470,19 @@ function QRScreenSection() {
   const links = [
     {
       href: "https://drive.google.com/file/d/1KDqeQhwDidOPDKn1ySt2hv0uFGPCrTgI/view?usp=sharing",
-      label: "1. QR 이후 가입과정 다운로드",
+      label: "1. 가입조건 ~ 보험료 조회 확인",
     },
     {
       href: "https://drive.google.com/file/d/1QGar06m9n0LtIewUh_Dxuabp9g9Dib6H/view?usp=sharing",
-      label: "2. QR 이후 가입과정 다운로드",
+      label: "2. 보험료 결제 ~ 본인인증",
     },
     {
       href: "https://drive.google.com/file/d/1_VKdvspM49aC6cPSir-ieOKUYF-DdYr6/view?usp=sharing",
-      label: "3. QR 이후 가입과정 다운로드",
+      label: "3. 몰리스매장 추천~ 최종보험료 확인",
     },
     {
       href: "https://drive.google.com/file/d/13qF9f5CSRP5AE_xy7F-D-nKdkCsZTivB/view?usp=sharing",
-      label: "4. QR 이후 가입과정 다운로드",
+      label: "4. 결제방식(현금,카드) ~ 할부 조건 등",
     },
   ];
 
