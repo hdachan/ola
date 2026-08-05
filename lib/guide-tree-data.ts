@@ -964,7 +964,7 @@ export const guideTrees: GuideNode[] = [
         answer: "분실자체가 계약종료 사유는 아니에요. 보험기간내 보험사고 발생시보장됩니다. 다만 분실기간 중 사고관련 동일성 입증은 필요해요.",
       },
       {
-        id: "faq-registration-06",
+        id: "faq-registration-06", 
         label: "반려동물의 나이를 확인할 방법이 없을 때 보험사에서 어떻게 처리하나요?",
         answer: "수의사 선생님의 판단으로 추정합니다.",
       },
