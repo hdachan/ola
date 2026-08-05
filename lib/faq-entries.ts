@@ -309,21 +309,14 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-premium-03",
     question: "소형견·중형견·대형견 보험료 차이가 얼마나 나나요?",
-    answer: "",
+    answer: "나이, 품종, 체중, 등이 반영돼요",
     category: "premium",
     subgroup: "premium-level",
   },
   {
     id: "faq-premium-04",
     question: "강아지와 고양이 보험료가 다른가요?",
-    answer: "",
-    category: "premium",
-    subgroup: "premium-level",
-  },
-  {
-    id: "faq-premium-05",
-    question: "나이가 많을수록 보험료가 비싼가요?",
-    answer: "네",
+    answer: "나이, 품종, 체중, 등이 반영돼요",
     category: "premium",
     subgroup: "premium-level",
   },
@@ -331,7 +324,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-premium-06",
     question: "보험료 납부는 연납만 가능한가요?",
-    answer: "현재 보험료 납부는 카드, 계좌이체 등으로 연납만 가능하며 12개월까지 할부가 가능합니다. 최대 5개월까지 무이자 할부가 가능합니다. (우리 카드는 6개월)",
+    answer: "현재 보험료 납부는 카드, 계좌이체 등으로 연납만 가능하며 12개월까지 할부가 가능합니다. 최대 5개월까지 무이자 할부가 가능합니다.",
     category: "premium",
     subgroup: "premium-payment",
   },
@@ -1026,7 +1019,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-renewal-05",
     question: "갱신을 원하지 않으면 어떻게 해야 하나요?",
-    answer: "",
+    answer: "계약을 하지 않으면 갱신 되지 않습니다.",
     category: "renewal",
     subgroup: "renewal-renew",
   },
@@ -1163,7 +1156,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-registration-01",
     question: "동물등록이 안 된 반려동물도 보험에 가입할 수 있나요?",
-    answer: "",
+    answer: "가입 가능합니다.",
     category: "registration",
   },
   {
@@ -1193,7 +1186,7 @@ export const faqEntries: FaqEntry[] = [
   {
     id: "faq-registration-06",
     question: "반려동물의 나이를 확인할 방법이 없을 때 보험사에서 어떻게 처리하나요?",
-    answer: "",
+    answer: "수의사 선생님의 판단으로 추정합니다.",
     category: "registration",
   },
 

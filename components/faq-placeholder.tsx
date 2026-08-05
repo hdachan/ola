@@ -174,9 +174,10 @@ export default function Faq() {
     <div>
       <h1 className="mb-1 text-xl font-bold text-gray-900">FAQ</h1>
         <p className="mb-5 text-sm text-gray-500">
-          자주 묻는 질문을 검색하거나 펼쳐서 확인해보세요 / B,G,I,J중 일부 답변이 없습니다.<br /><br />
+          자주 묻는 질문을 검색하거나 펼쳐서 확인해보세요 / G,I중 일부 답변이 없습니다.<br /><br />
           카카오톡에서 올라펫으로 검색 후<br />
-          친구 추가하면 많은 기능을 이용 할 수 있습니다.
+          친구 추가하면 많은 기능을 사용할수 있고{' '}
+          <strong className="font-semibold text-gray-700">실시간 채팅 상담 가능합니다.</strong>
         </p>
 
 

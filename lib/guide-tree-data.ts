@@ -186,17 +186,12 @@ export const guideTrees: GuideNode[] = [
           {
             id: "faq-premium-03",
             label: "소형견·중형견·대형견 보험료 차이가 얼마나 나나요?",
-            answer: "",
+            answer: "나이, 품종, 체중, 등이 반영돼요",
           },
           {
             id: "faq-premium-04",
             label: "강아지와 고양이 보험료가 다른가요?",
-            answer: "",
-          },
-          {
-            id: "faq-premium-05",
-            label: "나이가 많을수록 보험료가 비싼가요?",
-            answer: "네",
+            answer: "나이, 품종, 체중, 등이 반영돼요",
           },
         ],
       },
@@ -821,7 +816,7 @@ export const guideTrees: GuideNode[] = [
           {
             id: "faq-renewal-05",
             label: "갱신을 원하지 않으면 어떻게 해야 하나요?",
-            answer: "",
+            answer: "계약을 하지 않으면 갱신 되지 않습니다.",
           },
           {
             id: "faq-renewal-06",
@@ -946,7 +941,7 @@ export const guideTrees: GuideNode[] = [
       {
         id: "faq-registration-01",
         label: "동물등록이 안 된 반려동물도 보험에 가입할 수 있나요?",
-        answer: "",
+        answer: "가입 가능합니다.",
       },
       {
         id: "faq-registration-02",
@@ -971,7 +966,7 @@ export const guideTrees: GuideNode[] = [
       {
         id: "faq-registration-06",
         label: "반려동물의 나이를 확인할 방법이 없을 때 보험사에서 어떻게 처리하나요?",
-        answer: "",
+        answer: "수의사 선생님의 판단으로 추정합니다.",
       },
     ],
   },
